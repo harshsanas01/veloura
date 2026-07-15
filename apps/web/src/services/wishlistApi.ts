@@ -9,4 +9,12 @@ export const wishlistApi = {
 
   removeItem: (productId: string) =>
     apiClient.delete<Wishlist>(`/wishlist/items/${productId}`).then((r) => r.data),
+
+  moveToCart: (productId: string, variantId: string, quantity = 1) =>
+    apiClient
+      .post<Wishlist>(`/wishlist/items/${productId}/move-to-cart`, {
+        variant_id: variantId,
+        quantity,
+      })
+      .then((r) => r.data),
 };

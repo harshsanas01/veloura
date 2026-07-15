@@ -1,4 +1,4 @@
-import { LayoutGrid, Package, Receipt } from "lucide-react";
+import { LayoutGrid, MessageSquareText, Package, Receipt, Tag, Users } from "lucide-react";
 import { Link, NavLink, Outlet } from "react-router-dom";
 
 import { Toaster } from "@/components/ui/Toaster";
@@ -8,6 +8,9 @@ const LINKS = [
   { label: "Overview", to: "/admin", icon: LayoutGrid, end: true },
   { label: "Products", to: "/admin/products", icon: Package, end: false },
   { label: "Orders", to: "/admin/orders", icon: Receipt, end: false },
+  { label: "Customers", to: "/admin/customers", icon: Users, end: false },
+  { label: "Coupons", to: "/admin/coupons", icon: Tag, end: false },
+  { label: "Reviews", to: "/admin/reviews", icon: MessageSquareText, end: false },
 ];
 
 export function AdminLayout() {

@@ -12,4 +12,11 @@ export const cartApi = {
 
   removeItem: (itemId: string) =>
     apiClient.delete<Cart>(`/cart/items/${itemId}`).then((r) => r.data),
+
+  moveToWishlist: (itemId: string) =>
+    apiClient.post<Cart>(`/cart/items/${itemId}/move-to-wishlist`).then((r) => r.data),
+
+  applyCoupon: (code: string) => apiClient.post<Cart>("/cart/coupon", { code }).then((r) => r.data),
+
+  removeCoupon: () => apiClient.delete<Cart>("/cart/coupon").then((r) => r.data),
 };

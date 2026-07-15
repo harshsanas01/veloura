@@ -15,7 +15,9 @@ class WishlistRepository:
         wishlist = self.db.scalar(
             select(Wishlist)
             .where(Wishlist.user_id == user_id)
-            .options(selectinload(Wishlist.items).selectinload(WishlistItem.product).selectinload(Product.variants))
+            .options(
+                selectinload(Wishlist.items).selectinload(WishlistItem.product).selectinload(Product.variants)
+            )
         )
         if wishlist is None:
             wishlist = Wishlist(user_id=user_id)

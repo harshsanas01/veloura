@@ -11,7 +11,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 def register(payload: RegisterRequest, db: DbSession) -> TokenResponse:
     service = AuthService(db)
     user, token = service.register(
-        email=payload.email, password=payload.password, full_name=payload.full_name
+        email=payload.email,
+        password=payload.password,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
     )
     return TokenResponse(access_token=token, user=UserOut.model_validate(user))
 

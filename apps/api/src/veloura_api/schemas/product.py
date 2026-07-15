@@ -69,6 +69,9 @@ class SortOption(str, Enum):
     PRICE_DESC = "price_desc"
     FEATURED = "featured"
     NAME_ASC = "name_asc"
+    BIGGEST_DISCOUNT = "biggest_discount"
+    # BEST_RATED / MOST_POPULAR are added once reviews and activity tracking
+    # (see project roadmap) provide the underlying data to sort by.
 
 
 class ProductListResponse(BaseModel):
@@ -79,14 +82,29 @@ class ProductListResponse(BaseModel):
     total_pages: int
 
 
+class ProductFacetsOut(BaseModel):
+    brands: list[str]
+    materials: list[str]
+    occasions: list[str]
+    seasons: list[str]
+    min_price: float
+    max_price: float
+
+
 class ProductFilterParams(BaseModel):
     q: str | None = None
     gender: Gender | None = None
     category: list[str] | None = None
     size: list[str] | None = None
     color: list[str] | None = None
+    brand: list[str] | None = None
+    material: list[str] | None = None
+    occasion: list[str] | None = None
+    season: list[str] | None = None
     min_price: float | None = Field(default=None, ge=0)
     max_price: float | None = Field(default=None, ge=0)
+    in_stock_only: bool = False
+    sale_only: bool = False
     sort: SortOption = SortOption.NEWEST
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=12, ge=1, le=48)

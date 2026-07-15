@@ -14,12 +14,18 @@ import { OrderSuccessPage } from "@/pages/OrderSuccessPage";
 import { ProductDetailPage } from "@/pages/ProductDetailPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { ShopPage } from "@/pages/ShopPage";
+import { AccountAddressesPage } from "@/pages/account/AccountAddressesPage";
 import { AccountOrdersPage } from "@/pages/account/AccountOrdersPage";
 import { AccountOverviewPage } from "@/pages/account/AccountOverviewPage";
+import { AccountProfilePage } from "@/pages/account/AccountProfilePage";
+import { AccountStyleProfilePage } from "@/pages/account/AccountStyleProfilePage";
 import { AccountWishlistPage } from "@/pages/account/AccountWishlistPage";
+import { AdminCouponsPage } from "@/pages/admin/AdminCouponsPage";
+import { AdminCustomersPage } from "@/pages/admin/AdminCustomersPage";
 import { AdminOrdersPage } from "@/pages/admin/AdminOrdersPage";
 import { AdminOverviewPage } from "@/pages/admin/AdminOverviewPage";
 import { AdminProductsPage } from "@/pages/admin/AdminProductsPage";
+import { AdminReviewsPage } from "@/pages/admin/AdminReviewsPage";
 
 export default function App() {
   return (
@@ -60,7 +66,11 @@ export default function App() {
         >
           <Route path="/account" element={<AccountOverviewPage />} />
           <Route path="/account/orders" element={<AccountOrdersPage />} />
+          <Route path="/account/orders/:orderId" element={<OrderSuccessPage />} />
           <Route path="/account/wishlist" element={<AccountWishlistPage />} />
+          <Route path="/account/addresses" element={<AccountAddressesPage />} />
+          <Route path="/account/style-profile" element={<AccountStyleProfilePage />} />
+          <Route path="/account/profile" element={<AccountProfilePage />} />
         </Route>
 
         <Route path="*" element={<NotFoundPage />} />
@@ -76,6 +86,9 @@ export default function App() {
         <Route path="/admin" element={<AdminOverviewPage />} />
         <Route path="/admin/products" element={<AdminProductsPage />} />
         <Route path="/admin/orders" element={<AdminOrdersPage />} />
+        <Route path="/admin/customers" element={<AdminCustomersPage />} />
+        <Route path="/admin/coupons" element={<AdminCouponsPage />} />
+        <Route path="/admin/reviews" element={<AdminReviewsPage />} />
       </Route>
     </Routes>
   );

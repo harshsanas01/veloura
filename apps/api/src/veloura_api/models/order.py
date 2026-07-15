@@ -16,6 +16,11 @@ class OrderStatus(str, enum.Enum):
     SHIPPED = "shipped"
     DELIVERED = "delivered"
     CANCELLED = "cancelled"
+    RETURNED = "returned"
+
+
+# Statuses a customer may still cancel from (before the item has shipped).
+CUSTOMER_CANCELLABLE_STATUSES = {OrderStatus.PENDING, OrderStatus.PAID, OrderStatus.PROCESSING}
 
 
 class Order(Base, UUIDPKMixin, TimestampMixin):
@@ -30,14 +35,24 @@ class Order(Base, UUIDPKMixin, TimestampMixin):
     )
 
     subtotal: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    discount_amount: Mapped[float] = mapped_column(Numeric(10, 2), default=0, nullable=False)
     shipping_cost: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     tax: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     total: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+
+    coupon_code: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    customer_notes: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
     shipping_address: Mapped[dict] = mapped_column(JSONB, nullable=False)
 
     user = relationship("User", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    status_history = relationship(
+        "OrderStatusHistory",
+        back_populates="order",
+        cascade="all, delete-orphan",
+        order_by="OrderStatusHistory.created_at",
+    )
 
 
 class OrderItem(Base, UUIDPKMixin, TimestampMixin):

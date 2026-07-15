@@ -31,6 +31,11 @@ and the API needs the database's connection string.
    cd ../.. && apps/api/.venv/bin/python scripts/seed_products.py
    apps/api/.venv/bin/python scripts/generate_embeddings.py  # optional, needs OPENAI_API_KEY
    ```
+   `seed_products.py` is idempotent and safe to re-run against a database that already has real
+   users/orders in it — it only adds missing seed rows and never deletes anything. If it detects
+   products from an older seed generation, it deactivates (not deletes) them. To actually purge
+   those deactivated rows, run `python scripts/reseed_products.py --confirm` separately — see the
+   root [README](../README.md#database-migrations--seed-data) for details.
 
 ## 2. Render (FastAPI backend)
 

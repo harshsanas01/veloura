@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import ForeignKey, Integer, UniqueConstraint
+from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,6 +14,7 @@ class Cart(Base, UUIDPKMixin, TimestampMixin):
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False
     )
+    coupon_code: Mapped[str | None] = mapped_column(String(40), nullable=True)
 
     user = relationship("User", back_populates="cart")
     items = relationship("CartItem", back_populates="cart", cascade="all, delete-orphan")

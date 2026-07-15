@@ -6,9 +6,28 @@ from veloura_api.ai.client import get_openai_client
 from veloura_api.config import get_settings
 
 COLOR_WORDS = [
-    "black", "white", "navy", "blue", "red", "green", "olive", "beige", "cream",
-    "tan", "brown", "grey", "gray", "pink", "purple", "burgundy", "yellow",
-    "orange", "khaki", "denim", "charcoal", "ivory",
+    "black",
+    "white",
+    "navy",
+    "blue",
+    "red",
+    "green",
+    "olive",
+    "beige",
+    "cream",
+    "tan",
+    "brown",
+    "grey",
+    "gray",
+    "pink",
+    "purple",
+    "burgundy",
+    "yellow",
+    "orange",
+    "khaki",
+    "denim",
+    "charcoal",
+    "ivory",
 ]
 
 OCCASION_KEYWORDS = {
@@ -25,9 +44,7 @@ OCCASION_KEYWORDS = {
 
 class StylePreferences(BaseModel):
     occasion: str = Field(description="The event or occasion the user is dressing for.")
-    gender_preference: str | None = Field(
-        default=None, description="'men', 'women', or null if unspecified."
-    )
+    gender_preference: str | None = Field(default=None, description="'men', 'women', or null if unspecified.")
     preferred_colors: list[str] = Field(default_factory=list)
     excluded_colors: list[str] = Field(default_factory=list)
     style: str = Field(default="casual", description="e.g. casual, formal, business-casual, streetwear")
@@ -35,6 +52,12 @@ class StylePreferences(BaseModel):
     budget: float | None = Field(default=None, description="Maximum total outfit budget in USD.")
     required_categories: list[str] = Field(default_factory=list)
     size_preferences: dict[str, str] = Field(default_factory=dict)
+    preferred_brands: list[str] = Field(default_factory=list)
+    excluded_brands: list[str] = Field(default_factory=list)
+    anchor_product_id: str | None = Field(
+        default=None,
+        description="A specific product ID (e.g. from the user's cart) to build the outfit around.",
+    )
     additional_notes: str = Field(default="")
 
 

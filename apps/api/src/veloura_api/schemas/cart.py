@@ -30,6 +30,13 @@ class CartOut(BaseModel):
     items: list[CartItemOut]
     subtotal: float
     item_count: int
+    coupon_code: str | None = None
+    coupon_error: str | None = None
+    discount_amount: float = 0
+    shipping_estimate: float = 0
+    tax_estimate: float = 0
+    estimated_total: float = 0
+    free_shipping_remaining: float = 0
 
 
 class AddCartItemRequest(BaseModel):
@@ -39,3 +46,11 @@ class AddCartItemRequest(BaseModel):
 
 class UpdateCartItemRequest(BaseModel):
     quantity: int = Field(ge=1, le=20)
+
+
+class ApplyCouponRequest(BaseModel):
+    code: str = Field(min_length=1, max_length=40)
+
+
+class MoveToWishlistRequest(BaseModel):
+    item_id: uuid.UUID

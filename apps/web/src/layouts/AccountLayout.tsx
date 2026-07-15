@@ -1,4 +1,4 @@
-import { Heart, LogOut, Package, User } from "lucide-react";
+import { Heart, LogOut, MapPin, Package, Sparkles, User, UserCog } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 
 import { useCurrentUser, useLogout } from "@/hooks/useAuth";
@@ -8,6 +8,9 @@ const LINKS = [
   { label: "Overview", to: "/account", icon: User, end: true },
   { label: "Orders", to: "/account/orders", icon: Package, end: false },
   { label: "Wishlist", to: "/account/wishlist", icon: Heart, end: false },
+  { label: "Addresses", to: "/account/addresses", icon: MapPin, end: false },
+  { label: "Style Profile", to: "/account/style-profile", icon: Sparkles, end: false },
+  { label: "Profile & Security", to: "/account/profile", icon: UserCog, end: false },
 ];
 
 export function AccountLayout() {

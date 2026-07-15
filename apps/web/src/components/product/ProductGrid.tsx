@@ -4,13 +4,26 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { ProductListItem } from "@/types";
 
-export function ProductGrid({ products }: { products: ProductListItem[] }) {
+export function ProductGrid({
+  products,
+  onClearFilters,
+}: {
+  products: ProductListItem[];
+  onClearFilters?: () => void;
+}) {
   if (products.length === 0) {
     return (
       <EmptyState
         icon={PackageSearch}
         title="No products found"
         description="Try adjusting your filters or search terms to find what you're looking for."
+        action={
+          onClearFilters ? (
+            <button onClick={onClearFilters} className="btn-primary mt-2">
+              Clear All Filters
+            </button>
+          ) : undefined
+        }
       />
     );
   }

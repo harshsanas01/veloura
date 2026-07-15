@@ -7,6 +7,7 @@ from veloura_api.config import get_settings
 from veloura_api.logging_config import configure_logging
 from veloura_api.middleware.request_context import RequestContextMiddleware
 from veloura_api.routes import (
+    account,
     admin,
     ai_stylist,
     auth,
@@ -15,6 +16,8 @@ from veloura_api.routes import (
     health,
     orders,
     products,
+    recommendations,
+    reviews,
     wishlist,
 )
 
@@ -57,3 +60,6 @@ app.include_router(wishlist.router, prefix=api_router_prefix)
 app.include_router(orders.router, prefix=api_router_prefix)
 app.include_router(ai_stylist.router, prefix=api_router_prefix)
 app.include_router(admin.router, prefix=api_router_prefix)
+app.include_router(account.router, prefix=api_router_prefix)
+app.include_router(reviews.router, prefix=api_router_prefix)
+app.include_router(recommendations.router, prefix=api_router_prefix)

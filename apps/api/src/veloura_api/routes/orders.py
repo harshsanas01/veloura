@@ -22,3 +22,8 @@ def list_orders(current_user: CurrentUser, db: DbSession) -> list[OrderSummaryOu
 @router.get("/{order_id}", response_model=OrderOut)
 def get_order(order_id: uuid.UUID, current_user: CurrentUser, db: DbSession) -> OrderOut:
     return OrderService(db).get_order(current_user.id, order_id)
+
+
+@router.post("/{order_id}/cancel", response_model=OrderOut)
+def cancel_order(order_id: uuid.UUID, current_user: CurrentUser, db: DbSession) -> OrderOut:
+    return OrderService(db).cancel_order(current_user.id, order_id)

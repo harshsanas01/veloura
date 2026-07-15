@@ -51,3 +51,38 @@ export function useRemoveCartItem() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["cart"] }),
   });
 }
+
+export function useMoveToWishlist() {
+  const queryClient = useQueryClient();
+  const push = useToastStore((s) => s.push);
+  return useMutation({
+    mutationFn: (itemId: string) => cartApi.moveToWishlist(itemId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      push("Moved to wishlist.", "success");
+    },
+    onError: (error) => push(getApiErrorMessage(error), "error"),
+  });
+}
+
+export function useApplyCoupon() {
+  const queryClient = useQueryClient();
+  const push = useToastStore((s) => s.push);
+  return useMutation({
+    mutationFn: (code: string) => cartApi.applyCoupon(code),
+    onSuccess: (cart) => {
+      queryClient.setQueryData(["cart"], cart);
+      push(`Coupon applied — $${cart.discount_amount.toFixed(2)} off.`, "success");
+    },
+    onError: (error) => push(getApiErrorMessage(error, "This coupon code isn't valid."), "error"),
+  });
+}
+
+export function useRemoveCoupon() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => cartApi.removeCoupon(),
+    onSuccess: (cart) => queryClient.setQueryData(["cart"], cart),
+  });
+}

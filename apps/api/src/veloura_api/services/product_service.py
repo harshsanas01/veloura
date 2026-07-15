@@ -8,6 +8,7 @@ from veloura_api.models.product import Product
 from veloura_api.repositories.product_repository import ProductRepository
 from veloura_api.schemas.category import CategoryOut
 from veloura_api.schemas.product import (
+    ProductFacetsOut,
     ProductFilterParams,
     ProductListItemOut,
     ProductListResponse,
@@ -97,3 +98,6 @@ class ProductService:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product not found.")
         related = self.repo.get_related(product, limit=limit)
         return [_to_list_item(p) for p in related]
+
+    def get_facets(self) -> ProductFacetsOut:
+        return self.repo.get_facets()

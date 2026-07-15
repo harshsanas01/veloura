@@ -22,6 +22,7 @@ class Address(Base, UUIDPKMixin, TimestampMixin):
     postal_code: Mapped[str] = mapped_column(String(20), nullable=False)
     country: Mapped[str] = mapped_column(String(120), nullable=False)
     phone: Mapped[str] = mapped_column(String(30), nullable=False)
-    is_default: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_default_shipping: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_default_billing: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     user = relationship("User", back_populates="addresses")

@@ -3,7 +3,12 @@ import uuid
 from fastapi import APIRouter
 
 from veloura_api.dependencies import CurrentUser, DbSession
-from veloura_api.schemas.cart import AddCartItemRequest, CartOut, UpdateCartItemRequest
+from veloura_api.schemas.cart import (
+    AddCartItemRequest,
+    ApplyCouponRequest,
+    CartOut,
+    UpdateCartItemRequest,
+)
 from veloura_api.services.cart_service import CartService
 
 router = APIRouter(prefix="/cart", tags=["cart"])
@@ -29,3 +34,18 @@ def update_item(
 @router.delete("/items/{item_id}", response_model=CartOut)
 def remove_item(item_id: uuid.UUID, current_user: CurrentUser, db: DbSession) -> CartOut:
     return CartService(db).remove_item(current_user.id, item_id)
+
+
+@router.post("/items/{item_id}/move-to-wishlist", response_model=CartOut)
+def move_to_wishlist(item_id: uuid.UUID, current_user: CurrentUser, db: DbSession) -> CartOut:
+    return CartService(db).move_to_wishlist(current_user.id, item_id)
+
+
+@router.post("/coupon", response_model=CartOut)
+def apply_coupon(payload: ApplyCouponRequest, current_user: CurrentUser, db: DbSession) -> CartOut:
+    return CartService(db).apply_coupon(current_user.id, payload.code)
+
+
+@router.delete("/coupon", response_model=CartOut)
+def remove_coupon(current_user: CurrentUser, db: DbSession) -> CartOut:
+    return CartService(db).remove_coupon(current_user.id)

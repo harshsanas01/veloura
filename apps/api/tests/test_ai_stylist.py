@@ -120,6 +120,96 @@ def test_ai_stylist_recommend_endpoint_returns_real_products(client, auth_header
             assert item["variant_id"] == str(seed_catalog["variant_in_stock"].id)
 
 
+def test_ai_stylist_refinement_changes_color_in_same_session(client, auth_headers, db_session, seed_catalog):
+    from veloura_api.models.product import Product, ProductVariant
+
+    product = Product(
+        slug="two-tone-tee",
+        name="Two-Tone Tee",
+        brand="Test Brand",
+        description="A tee available in two colors for refinement testing.",
+        short_description="Two colors.",
+        gender=seed_catalog["product"].gender,
+        category_id=seed_catalog["category"].id,
+        base_price=45.00,
+        material="Cotton",
+        care_instructions="Wash cold.",
+        occasion_tags=["casual"],
+        style_tags=["casual"],
+        season_tags=["summer"],
+        is_active=True,
+    )
+    product.variants = [
+        ProductVariant(
+            sku="TT-BLACK", size="M", color_name="Black", color_hex="#111111",
+            inventory_quantity=10, image_url="https://example.com/black.jpg",
+        ),
+        ProductVariant(
+            sku="TT-RED", size="M", color_name="Red", color_hex="#B33A3A",
+            inventory_quantity=10, image_url="https://example.com/red.jpg",
+        ),
+    ]
+    db_session.add(product)
+    db_session.commit()
+
+    headers, _ = auth_headers
+    first = client.post(
+        "/api/ai-stylist/recommend",
+        headers=headers,
+        json={"message": "Casual outfit, nothing too expensive"},
+    )
+    assert first.status_code == 200
+    session_id = first.json()["session_id"]
+    assert len(first.json()["outfits"]) >= 1
+
+    refine = client.post(
+        "/api/ai-stylist/recommend",
+        headers=headers,
+        json={"message": "Change the color to red", "session_id": session_id},
+    )
+    assert refine.status_code == 200
+    body = refine.json()
+    assert len(body["outfits"]) == 1
+    colors = {item["color_name"] for item in body["outfits"][0]["items"]}
+    assert "Red" in colors
+
+    detail = client.get(f"/api/ai-stylist/sessions/{session_id}", headers=headers)
+    assert detail.status_code == 200
+    assert len(detail.json()["messages"]) == 4  # 2 user + 2 assistant turns
+
+
+def test_ai_stylist_uses_saved_style_profile_budget(client, auth_headers, seed_catalog, second_product):
+    headers, _ = auth_headers
+    client.put("/api/account/style-profile", headers=headers, json={"budget_max": 50})
+
+    response = client.post(
+        "/api/ai-stylist/recommend", headers=headers, json={"message": "Something casual for everyday"}
+    )
+    assert response.status_code == 200
+    for outfit in response.json()["outfits"]:
+        for item in outfit["items"]:
+            assert item["price"] <= 50
+
+
+def test_ai_stylist_builds_outfit_around_cart_item(client, auth_headers, seed_catalog, second_product):
+    headers, _ = auth_headers
+    client.post(
+        "/api/cart/items",
+        headers=headers,
+        json={"variant_id": str(second_product.variants[0].id), "quantity": 1},
+    )
+
+    response = client.post(
+        "/api/ai-stylist/recommend",
+        headers=headers,
+        json={"message": "Build an outfit around the jacket in my cart"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    all_product_ids = {item["product_id"] for outfit in body["outfits"] for item in outfit["items"]}
+    assert str(second_product.id) in all_product_ids
+
+
 def test_ai_stylist_sessions_list_and_detail(client, auth_headers, seed_catalog):
     headers, _ = auth_headers
     recommend_response = client.post(

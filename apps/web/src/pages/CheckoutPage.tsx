@@ -1,8 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 
+import { CouponField } from "@/components/cart/CouponField";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useCart } from "@/hooks/useCart";
@@ -10,10 +11,6 @@ import { useCreateOrder } from "@/hooks/useOrders";
 import { getApiErrorMessage } from "@/services/apiClient";
 import { type ShippingAddressFormValues, shippingAddressSchema } from "@/schemas/checkout";
 import { useToastStore } from "@/store/toastStore";
-
-const FREE_SHIPPING_THRESHOLD = 100;
-const STANDARD_SHIPPING = 7.99;
-const TAX_RATE = 0.0825;
 
 function formatUSD(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
@@ -24,6 +21,7 @@ export function CheckoutPage() {
   const createOrder = useCreateOrder();
   const navigate = useNavigate();
   const push = useToastStore((s) => s.push);
+  const [notes, setNotes] = useState("");
 
   const {
     register,
@@ -42,13 +40,13 @@ export function CheckoutPage() {
 
   if (!cart) return null;
 
-  const shipping = cart.subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING;
-  const tax = cart.subtotal * TAX_RATE;
-  const total = cart.subtotal + shipping + tax;
-
   async function onSubmit(values: ShippingAddressFormValues) {
     try {
-      const order = await createOrder.mutateAsync(values);
+      const order = await createOrder.mutateAsync({
+        shipping_address: values,
+        coupon_code: cart!.coupon_code,
+        customer_notes: notes || undefined,
+      });
       navigate(`/order-success/${order.id}`);
     } catch (error) {
       push(getApiErrorMessage(error, "Checkout failed. Please check your cart and try again."), "error");
@@ -75,6 +73,20 @@ export function CheckoutPage() {
           </div>
           <Input label="Phone" type="tel" {...register("phone")} error={errors.phone?.message} />
 
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="order-notes" className="text-sm font-medium text-ink">
+              Order Notes (optional)
+            </label>
+            <textarea
+              id="order-notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              placeholder="Delivery instructions, gift notes, etc."
+              className="input-veloura resize-none"
+            />
+          </div>
+
           <div className="mt-2 rounded border border-border bg-background px-4 py-3 text-xs text-ink-secondary">
             This is a simulated checkout for demo purposes — no real payment is collected.
           </div>
@@ -96,22 +108,33 @@ export function CheckoutPage() {
               </div>
             ))}
           </div>
+
+          <div className="mt-4">
+            <CouponField couponCode={cart.coupon_code} couponError={cart.coupon_error} />
+          </div>
+
           <div className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
             <div className="flex justify-between">
               <span className="text-ink-secondary">Subtotal</span>
               <span className="text-ink">{formatUSD(cart.subtotal)}</span>
             </div>
+            {cart.discount_amount > 0 && (
+              <div className="flex justify-between text-burgundy">
+                <span>Discount</span>
+                <span>-{formatUSD(cart.discount_amount)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-ink-secondary">Shipping</span>
-              <span className="text-ink">{shipping === 0 ? "Free" : formatUSD(shipping)}</span>
+              <span className="text-ink">{cart.shipping_estimate === 0 ? "Free" : formatUSD(cart.shipping_estimate)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-ink-secondary">Tax (8.25%)</span>
-              <span className="text-ink">{formatUSD(tax)}</span>
+              <span className="text-ink">{formatUSD(cart.tax_estimate)}</span>
             </div>
             <div className="flex justify-between border-t border-border pt-2 text-base font-semibold">
               <span className="text-ink">Total</span>
-              <span className="text-ink">{formatUSD(total)}</span>
+              <span className="text-ink">{formatUSD(cart.estimated_total)}</span>
             </div>
           </div>
           <Button type="submit" size="lg" className="mt-5 w-full" isLoading={createOrder.isPending}>

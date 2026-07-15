@@ -2,8 +2,8 @@ import { Heart, Menu, Search, Sparkles, User, X, ShoppingBag } from "lucide-reac
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
-import { useCart } from "@/hooks/useCart";
 import { useIsAuthenticated } from "@/hooks/useAuth";
+import { useUnifiedCart } from "@/hooks/useUnifiedCart";
 import { useWishlist } from "@/hooks/useWishlist";
 import { useUIStore } from "@/store/uiStore";
 import { cn } from "@/utils/cn";
@@ -22,7 +22,8 @@ export function Navbar() {
   const navigate = useNavigate();
   const isAuthenticated = useIsAuthenticated();
   const toggleCart = useUIStore((s) => s.toggleCart);
-  const { data: cart } = useCart();
+  const cart = useUnifiedCart();
+  const cartCount = cart.items.reduce((sum, i) => sum + i.quantity, 0);
   const { data: wishlist } = useWishlist();
 
   function handleSearchSubmit(e: React.FormEvent) {
@@ -101,9 +102,9 @@ export function Navbar() {
             onClick={toggleCart}
           >
             <ShoppingBag className="h-5 w-5" />
-            {Boolean(cart?.item_count) && (
+            {cartCount > 0 && (
               <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-burgundy text-[10px] text-surface">
-                {cart!.item_count}
+                {cartCount}
               </span>
             )}
           </button>

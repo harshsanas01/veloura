@@ -24,9 +24,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def create_access_token(subject: str, extra_claims: dict[str, Any] | None = None) -> str:
-    expire = datetime.now(UTC) + timedelta(
-        minutes=settings.jwt_access_token_expire_minutes
-    )
+    expire = datetime.now(UTC) + timedelta(minutes=settings.jwt_access_token_expire_minutes)
     payload: dict[str, Any] = {"sub": subject, "exp": expire}
     if extra_claims:
         payload.update(extra_claims)

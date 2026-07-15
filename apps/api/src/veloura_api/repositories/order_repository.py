@@ -26,9 +26,8 @@ class OrderRepository:
             select(Order)
             .where(Order.id == order_id)
             .options(
-                selectinload(Order.items)
-                .joinedload(OrderItem.variant)
-                .joinedload(ProductVariant.product)
+                selectinload(Order.items).joinedload(OrderItem.variant).joinedload(ProductVariant.product),
+                selectinload(Order.status_history),
             )
         )
 

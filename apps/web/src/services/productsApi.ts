@@ -1,5 +1,5 @@
 import { apiClient } from "@/services/apiClient";
-import type { Product, ProductFilters, ProductListItem, ProductListResponse } from "@/types";
+import type { Product, ProductFacets, ProductFilters, ProductListItem, ProductListResponse } from "@/types";
 
 export const productsApi = {
   list: (filters: ProductFilters) =>
@@ -14,4 +14,6 @@ export const productsApi = {
 
   getRelated: (productId: string) =>
     apiClient.get<ProductListItem[]>(`/products/${productId}/related`).then((r) => r.data),
+
+  getFacets: () => apiClient.get<ProductFacets>("/products/facets").then((r) => r.data),
 };

@@ -37,3 +37,19 @@ export function useToggleWishlist() {
 
   return { add, remove };
 }
+
+export function useMoveWishlistItemToCart() {
+  const queryClient = useQueryClient();
+  const push = useToastStore((s) => s.push);
+
+  return useMutation({
+    mutationFn: ({ productId, variantId, quantity }: { productId: string; variantId: string; quantity?: number }) =>
+      wishlistApi.moveToCart(productId, variantId, quantity),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["wishlist"] });
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      push("Moved to your bag.", "success");
+    },
+    onError: (error) => push(getApiErrorMessage(error, "Could not move this item to your bag."), "error"),
+  });
+}

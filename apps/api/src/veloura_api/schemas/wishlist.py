@@ -10,7 +10,10 @@ class WishlistItemOut(BaseModel):
     name: str
     brand: str
     primary_image: str
+    base_price: float
+    sale_price: float | None
     effective_price: float
+    on_sale: bool
     in_stock: bool
 
 
@@ -20,3 +23,8 @@ class WishlistOut(BaseModel):
 
 class AddWishlistItemRequest(BaseModel):
     product_id: uuid.UUID
+
+
+class MoveWishlistItemToCartRequest(BaseModel):
+    variant_id: uuid.UUID
+    quantity: int = 1

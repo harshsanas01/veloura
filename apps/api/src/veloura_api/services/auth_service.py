@@ -13,7 +13,7 @@ class AuthService:
         self.db = db
         self.users = UserRepository(db)
 
-    def register(self, *, email: str, password: str, full_name: str) -> tuple[User, str]:
+    def register(self, *, email: str, password: str, first_name: str, last_name: str) -> tuple[User, str]:
         if self.users.get_by_email(email):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, detail="An account with this email already exists."
@@ -21,7 +21,8 @@ class AuthService:
         user = self.users.create(
             email=email,
             hashed_password=hash_password(password),
-            full_name=full_name,
+            first_name=first_name,
+            last_name=last_name,
             role=UserRole.CUSTOMER,
         )
         self.db.add(Cart(user_id=user.id))
@@ -34,9 +35,7 @@ class AuthService:
     def login(self, *, email: str, password: str) -> tuple[User, str]:
         user = self.users.get_by_email(email)
         if not user or not verify_password(password, user.hashed_password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password."
-            )
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password.")
         if not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="This account has been deactivated."

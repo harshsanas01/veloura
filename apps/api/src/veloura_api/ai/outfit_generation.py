@@ -11,11 +11,19 @@ MAX_ITEMS_PER_OUTFIT = 4
 # OpenAI key is configured) assembles sensible outfits - e.g. one top + one bottom +
 # one layer - instead of combining three unrelated bottoms.
 CATEGORY_SLOTS = {
-    "tshirts": "top", "shirts": "top", "hoodies": "top", "sweaters": "top",
+    "tshirts": "top",
+    "shirts": "top",
+    "hoodies": "top",
+    "sweaters": "top",
     "activewear": "top",
-    "jeans": "bottom", "trousers": "bottom", "shorts": "bottom", "skirts": "bottom",
-    "jackets": "layer", "coats": "layer",
-    "dresses": "one_piece", "swimwear": "one_piece",
+    "jeans": "bottom",
+    "trousers": "bottom",
+    "shorts": "bottom",
+    "skirts": "bottom",
+    "jackets": "layer",
+    "coats": "layer",
+    "dresses": "one_piece",
+    "swimwear": "one_piece",
     "shoes": "footwear",
     "accessories": "accessory",
 }
@@ -45,9 +53,11 @@ STRICTLY from the candidate product list provided in the user message - this is 
 live catalog available to recommend from. Never invent a product_id or variant_id that is not \
 in the candidate list. Prefer combining 2-4 complementary pieces from different categories \
 (e.g. top + bottom + outerwear/shoes) rather than duplicating the same category. Respect the \
-stated budget, preferred colors, and excluded colors when choosing items. If the catalog \
-cannot fully satisfy the request, say so plainly in the summary and do the best you can with \
-what is available. Explanations should be concise, confident, and editorial in tone."""
+stated budget, preferred colors, and excluded colors when choosing items. If the candidate list \
+includes an "anchor_product_id" in the preferences, that exact product/variant MUST be included \
+as one of the outfit's items, and the rest of the outfit should be built to complement it. If the \
+catalog cannot fully satisfy the request, say so plainly in the summary and do the best you can \
+with what is available. Explanations should be concise, confident, and editorial in tone."""
 
 
 def _candidate_payload(products: list[Product], preferences: StylePreferences) -> list[dict]:
@@ -109,9 +119,7 @@ def _validate_and_price(
     real candidate set retrieved from Postgres. This makes hallucinated products impossible
     to reach the frontend even if the model misbehaves."""
     product_map, variant_to_product = _index_by_id(products)
-    valid_variant_ids = {
-        str(v.id) for p in products for v in p.variants if v.inventory_quantity > 0
-    }
+    valid_variant_ids = {str(v.id) for p in products for v in p.variants if v.inventory_quantity > 0}
 
     cleaned_outfits: list[OutfitSuggestion] = []
     for outfit in llm_response.outfits:
@@ -132,12 +140,13 @@ def _validate_and_price(
             if len(cleaned_items) >= MAX_ITEMS_PER_OUTFIT:
                 break
         if cleaned_items:
-            cleaned_outfits.append(OutfitSuggestion(
-                name=outfit.name, explanation=outfit.explanation, items=cleaned_items
-            ))
+            cleaned_outfits.append(
+                OutfitSuggestion(name=outfit.name, explanation=outfit.explanation, items=cleaned_items)
+            )
 
     budget_shortfall = False
     if preferences.budget:
+
         def outfit_total(outfit: OutfitSuggestion) -> float:
             total = 0.0
             for item in outfit.items:
@@ -178,9 +187,7 @@ def _validate_and_price(
     )
 
 
-def _heuristic_generate(
-    products: list[Product], preferences: StylePreferences
-) -> StylistLLMResponse:
+def _heuristic_generate(products: list[Product], preferences: StylePreferences) -> StylistLLMResponse:
     payload = _candidate_payload(products, preferences)
     if not payload:
         return StylistLLMResponse(
@@ -196,6 +203,15 @@ def _heuristic_generate(
     chosen: list[dict] = []
     filled_slots: set[str] = set()
     running_total = 0.0
+
+    if preferences.anchor_product_id:
+        anchor_item = next((c for c in payload if c["product_id"] == preferences.anchor_product_id), None)
+        if anchor_item:
+            chosen.append(anchor_item)
+            filled_slots.add(CATEGORY_SLOTS.get(anchor_item["category"], "accessory"))
+            running_total += anchor_item["price"]
+            payload = [c for c in payload if c["product_id"] != preferences.anchor_product_id]
+
     for item in payload:
         slot = CATEGORY_SLOTS.get(item["category"], "accessory")
         if slot in filled_slots:
@@ -219,7 +235,9 @@ def _heuristic_generate(
             product_id=c["product_id"],
             variant_id=c["variants"][0]["variant_id"],
             reason=(
-                f"A versatile {c['category'].replace('-', ' ')} piece "
+                "The piece you already have in your cart."
+                if c["product_id"] == preferences.anchor_product_id
+                else f"A versatile {c['category'].replace('-', ' ')} piece "
                 f"that fits the {preferences.occasion} vibe."
             ),
         )

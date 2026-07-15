@@ -7,9 +7,17 @@ def slugify(value: str) -> str:
     return slug or uuid.uuid4().hex[:8]
 
 
-def embedding_text(*, name: str, description: str, category: str, gender: str,
-                    style_tags: list[str], occasion_tags: list[str], season_tags: list[str],
-                    colors: list[str]) -> str:
+def embedding_text(
+    *,
+    name: str,
+    description: str,
+    category: str,
+    gender: str,
+    style_tags: list[str],
+    occasion_tags: list[str],
+    season_tags: list[str],
+    colors: list[str],
+) -> str:
     parts = [
         name,
         description,

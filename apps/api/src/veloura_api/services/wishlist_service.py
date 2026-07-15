@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from veloura_api.repositories.product_repository import ProductRepository
 from veloura_api.repositories.wishlist_repository import WishlistRepository
 from veloura_api.schemas.wishlist import WishlistItemOut, WishlistOut
+from veloura_api.services.cart_service import CartService
 from veloura_api.services.product_service import PLACEHOLDER_IMAGE
 
 
@@ -29,7 +30,10 @@ class WishlistService:
                     name=product.name,
                     brand=product.brand,
                     primary_image=image,
+                    base_price=float(product.base_price),
+                    sale_price=float(product.sale_price) if product.sale_price else None,
                     effective_price=product.effective_price,
+                    on_sale=product.sale_price is not None,
                     in_stock=any(v.inventory_quantity > 0 for v in product.variants),
                 )
             )
@@ -53,4 +57,24 @@ class WishlistService:
         if item:
             self.db.delete(item)
             self.db.commit()
+        return self.get_wishlist(user_id)
+
+    def move_to_cart(
+        self, user_id: uuid.UUID, product_id: uuid.UUID, variant_id: uuid.UUID, quantity: int
+    ) -> WishlistOut:
+        wishlist = self.repo.get_or_create_for_user(user_id)
+        item = self.repo.get_item(wishlist.id, product_id)
+        if not item:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wishlist item not found.")
+
+        product = self.products.get_by_id(product_id)
+        if not product or not any(v.id == variant_id for v in product.variants):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="That size/color isn't available for this product.",
+            )
+
+        CartService(self.db).add_item(user_id, variant_id, quantity)
+        self.db.delete(item)
+        self.db.commit()
         return self.get_wishlist(user_id)

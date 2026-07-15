@@ -16,11 +16,12 @@ class UserRepository:
     def get_by_id(self, user_id: uuid.UUID) -> User | None:
         return self.db.get(User, user_id)
 
-    def create(self, *, email: str, hashed_password: str, full_name: str, role: str) -> User:
+    def create(self, *, email: str, hashed_password: str, first_name: str, last_name: str, role: str) -> User:
         user = User(
             email=email.lower(),
             hashed_password=hashed_password,
-            full_name=full_name,
+            first_name=first_name,
+            last_name=last_name,
             role=role,
         )
         self.db.add(user)

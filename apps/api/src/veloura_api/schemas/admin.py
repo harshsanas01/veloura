@@ -3,6 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
+from veloura_api.models.coupon import DiscountType
 from veloura_api.models.order import OrderStatus
 from veloura_api.models.product import Gender
 
@@ -101,4 +102,119 @@ class AdminOrderOut(BaseModel):
     customer_email: str
     total: float
     items: list[AdminOrderItemOut]
+    created_at: datetime
+
+
+class AdminProductListResponse(BaseModel):
+    items: list[AdminProductOut]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+class AdminOrderListResponse(BaseModel):
+    items: list[AdminOrderOut]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+class AdminCustomerOut(BaseModel):
+    id: uuid.UUID
+    email: str
+    full_name: str
+    role: str
+    is_active: bool
+    order_count: int
+    total_spent: float
+    created_at: datetime
+
+
+class AdminCustomerListResponse(BaseModel):
+    items: list[AdminCustomerOut]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+class InventoryAdjustmentRequest(BaseModel):
+    delta: int
+    reason: str = Field(min_length=1, max_length=500)
+
+
+class BestSellingProductOut(BaseModel):
+    product_id: uuid.UUID
+    name: str
+    slug: str
+    units_sold: int
+
+
+class TopCategoryOut(BaseModel):
+    category_name: str
+    category_slug: str
+    revenue: float
+
+
+class AdminDashboardOut(BaseModel):
+    total_revenue: float
+    total_orders: int
+    total_customers: int
+    average_order_value: float
+    low_stock_variant_count: int
+    out_of_stock_variant_count: int
+    best_selling_products: list[BestSellingProductOut]
+    recent_orders: list[AdminOrderOut]
+    top_categories: list[TopCategoryOut]
+
+
+class AdminCouponCreate(BaseModel):
+    code: str = Field(min_length=1, max_length=40)
+    discount_type: DiscountType
+    discount_value: float = Field(ge=0)
+    free_shipping: bool = False
+    min_order_value: float | None = Field(default=None, ge=0)
+    max_discount: float | None = Field(default=None, ge=0)
+    starts_at: datetime | None = None
+    expires_at: datetime | None = None
+    is_active: bool = True
+    usage_limit: int | None = Field(default=None, ge=1)
+    per_user_limit: int | None = Field(default=None, ge=1)
+    applicable_categories: list[str] = Field(default_factory=list)
+    applicable_products: list[uuid.UUID] = Field(default_factory=list)
+
+
+class AdminCouponUpdate(BaseModel):
+    discount_type: DiscountType | None = None
+    discount_value: float | None = Field(default=None, ge=0)
+    free_shipping: bool | None = None
+    min_order_value: float | None = Field(default=None, ge=0)
+    max_discount: float | None = Field(default=None, ge=0)
+    starts_at: datetime | None = None
+    expires_at: datetime | None = None
+    is_active: bool | None = None
+    usage_limit: int | None = Field(default=None, ge=1)
+    per_user_limit: int | None = Field(default=None, ge=1)
+    applicable_categories: list[str] | None = None
+    applicable_products: list[uuid.UUID] | None = None
+
+
+class AdminCouponOut(BaseModel):
+    id: uuid.UUID
+    code: str
+    discount_type: DiscountType
+    discount_value: float
+    free_shipping: bool
+    min_order_value: float | None
+    max_discount: float | None
+    starts_at: datetime | None
+    expires_at: datetime | None
+    is_active: bool
+    usage_limit: int | None
+    per_user_limit: int | None
+    applicable_categories: list[str]
+    applicable_products: list[uuid.UUID]
+    total_redemptions: int
     created_at: datetime

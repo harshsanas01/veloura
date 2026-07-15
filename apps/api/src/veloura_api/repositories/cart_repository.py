@@ -15,11 +15,7 @@ class CartRepository:
         cart = self.db.scalar(
             select(Cart)
             .where(Cart.user_id == user_id)
-            .options(
-                selectinload(Cart.items)
-                .joinedload(CartItem.variant)
-                .joinedload(ProductVariant.product)
-            )
+            .options(selectinload(Cart.items).joinedload(CartItem.variant).joinedload(ProductVariant.product))
         )
         if cart is None:
             cart = Cart(user_id=user_id)

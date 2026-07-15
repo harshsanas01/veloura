@@ -32,6 +32,24 @@ def get_candidate_products(db: Session, preferences: StylePreferences) -> list[P
 
     candidates = list(db.scalars(query.limit(200)).unique().all())
 
+    if preferences.anchor_product_id:
+        anchor_ids = {str(p.id) for p in candidates}
+        if preferences.anchor_product_id not in anchor_ids:
+            anchor_query = (
+                select(Product)
+                .join(ProductVariant, ProductVariant.product_id == Product.id)
+                .where(
+                    Product.id == preferences.anchor_product_id,
+                    Product.is_active.is_(True),
+                    ProductVariant.inventory_quantity > 0,
+                )
+                .options(selectinload(Product.variants), joinedload(Product.category))
+                .distinct()
+            )
+            anchor_product = db.scalar(anchor_query)
+            if anchor_product:
+                candidates.append(anchor_product)
+
     query_text = " ".join(
         filter(
             None,
@@ -101,5 +119,17 @@ def _score(product: Product, preferences: StylePreferences) -> float:
 
     if product.is_featured:
         score += 0.5
+
+    if preferences.preferred_brands and product.brand.lower() in {
+        b.lower() for b in preferences.preferred_brands
+    }:
+        score += 2
+    if preferences.excluded_brands and product.brand.lower() in {
+        b.lower() for b in preferences.excluded_brands
+    }:
+        score -= 5
+
+    if preferences.anchor_product_id and str(product.id) == preferences.anchor_product_id:
+        score += 100  # always keep the anchor item at the top of the candidate list
 
     return score

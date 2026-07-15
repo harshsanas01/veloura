@@ -24,13 +24,11 @@ class Product(Base, UUIDPKMixin, TimestampMixin):
 
     slug: Mapped[str] = mapped_column(String(160), unique=True, index=True, nullable=False)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
-    brand: Mapped[str] = mapped_column(String(120), nullable=False)
+    brand: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
     description: Mapped[str] = mapped_column(String(2000), nullable=False)
     short_description: Mapped[str] = mapped_column(String(300), nullable=False)
 
-    gender: Mapped[Gender] = mapped_column(
-        SAEnum(Gender, name="product_gender"), nullable=False, index=True
-    )
+    gender: Mapped[Gender] = mapped_column(SAEnum(Gender, name="product_gender"), nullable=False, index=True)
     category_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False
     )
@@ -38,7 +36,7 @@ class Product(Base, UUIDPKMixin, TimestampMixin):
     base_price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
     sale_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)
 
-    material: Mapped[str] = mapped_column(String(300), nullable=False)
+    material: Mapped[str] = mapped_column(String(300), nullable=False, index=True)
     care_instructions: Mapped[str] = mapped_column(String(500), nullable=False)
 
     occasion_tags: Mapped[list[str]] = mapped_column(ARRAY(String), default=list, nullable=False)
@@ -51,9 +49,7 @@ class Product(Base, UUIDPKMixin, TimestampMixin):
     embedding: Mapped[list[float] | None] = mapped_column(Vector(EMBEDDING_DIM), nullable=True)
 
     category = relationship("Category", back_populates="products")
-    variants = relationship(
-        "ProductVariant", back_populates="product", cascade="all, delete-orphan"
-    )
+    variants = relationship("ProductVariant", back_populates="product", cascade="all, delete-orphan")
 
     @property
     def effective_price(self) -> float:

@@ -1,6 +1,8 @@
 import os
 
-os.environ["DATABASE_URL"] = "postgresql+psycopg://veloura:veloura@localhost:5433/veloura_test?sslmode=disable"
+os.environ["DATABASE_URL"] = (
+    "postgresql+psycopg://veloura:veloura@localhost:5433/veloura_test?sslmode=disable"
+)
 os.environ["JWT_SECRET_KEY"] = "test-secret-key"
 os.environ["OPENAI_API_KEY"] = ""  # never hit the real OpenAI API in tests
 os.environ["VELOURA_CORS_ALLOWED_ORIGINS"] = "http://localhost:5173"
@@ -59,10 +61,21 @@ def client(db_session):
 
 @pytest.fixture()
 def register_user(client):
-    def _register(email="shopper@example.com", password="TestPass123!", full_name="Test Shopper"):
+    def _register(
+        email="shopper@example.com",
+        password="TestPass123!",
+        first_name="Test",
+        last_name="Shopper",
+    ):
         response = client.post(
             "/api/auth/register",
-            json={"email": email, "password": password, "full_name": full_name},
+            json={
+                "email": email,
+                "password": password,
+                "confirm_password": password,
+                "first_name": first_name,
+                "last_name": last_name,
+            },
         )
         assert response.status_code == 201, response.text
         return response.json()
@@ -86,7 +99,8 @@ def admin_headers(client, db_session):
     admin = User(
         email="admin-test@veloura.com",
         hashed_password=hash_password("AdminPass123!"),
-        full_name="Test Admin",
+        first_name="Test",
+        last_name="Admin",
         role=UserRole.ADMIN,
     )
     db_session.add(admin)
@@ -175,3 +189,63 @@ def seed_catalog(db_session):
         "variant_out_of_stock": variant_out_of_stock,
         "inactive_product": inactive_product,
     }
+
+
+@pytest.fixture()
+def percent_coupon(db_session):
+    from veloura_api.models.coupon import Coupon, DiscountType
+
+    coupon = Coupon(
+        code="TESTPCT10",
+        discount_type=DiscountType.PERCENTAGE,
+        discount_value=10,
+        free_shipping=False,
+        is_active=True,
+        applicable_categories=[],
+        applicable_products=[],
+    )
+    db_session.add(coupon)
+    db_session.commit()
+    return coupon
+
+
+@pytest.fixture()
+def second_product(db_session, seed_catalog):
+    from veloura_api.models.category import Category
+    from veloura_api.models.product import Gender, Product, ProductVariant
+
+    category = Category(slug="jackets", name="Jackets", description="Jackets")
+    db_session.add(category)
+    db_session.flush()
+
+    product = Product(
+        slug="test-moto-jacket",
+        name="Moto Jacket",
+        brand="Solstice Denim",
+        description="A waxed cotton canvas jacket built for cold streetwear evenings.",
+        short_description="A waxed cotton canvas jacket.",
+        gender=Gender.MEN,
+        category_id=category.id,
+        base_price=200.00,
+        sale_price=150.00,
+        material="Waxed cotton canvas",
+        care_instructions="Wipe clean.",
+        occasion_tags=["streetwear"],
+        style_tags=["streetwear"],
+        season_tags=["winter"],
+        is_featured=False,
+        is_active=True,
+    )
+    product.variants.append(
+        ProductVariant(
+            sku="TEST-JACKET-1",
+            size="M",
+            color_name="Charcoal",
+            color_hex="#36454F",
+            inventory_quantity=5,
+            image_url="https://images.unsplash.com/photo-1594672830234-ba4cfe1202dc?w=800&q=80",
+        )
+    )
+    db_session.add(product)
+    db_session.commit()
+    return product

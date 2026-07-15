@@ -11,6 +11,7 @@ const EXAMPLE_PROMPTS = [
   "I am going on a late-night date. Suggest an all-black outfit.",
   "Suggest a casual summer outfit using blue and white.",
   "I need a business-casual outfit for an office event.",
+  "Build an outfit around the jacket currently in my cart.",
 ];
 
 interface DisplayMessage {

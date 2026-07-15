@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 
 import { ProductRail } from "@/components/product/ProductRail";
 import { useProducts } from "@/hooks/useProducts";
+import { useTrending } from "@/hooks/useRecommendations";
 import { useToastStore } from "@/store/toastStore";
 
 const EXAMPLE_PROMPTS = [
@@ -67,6 +68,7 @@ export function HomePage() {
   const { data: newArrivals, isLoading: newArrivalsLoading } = useProducts({ sort: "newest", page_size: 8 });
   const { data: womensEdit, isLoading: womensLoading } = useProducts({ gender: "women", sort: "featured", page_size: 8 });
   const { data: mensEdit, isLoading: mensLoading } = useProducts({ gender: "men", sort: "featured", page_size: 8 });
+  const { data: trending, isLoading: trendingLoading } = useTrending(undefined, 8);
 
   const [email, setEmail] = useState("");
   const push = useToastStore((s) => s.push);
@@ -164,6 +166,17 @@ export function HomePage() {
           </Link>
         </motion.div>
         <ProductRail products={newArrivals?.items} isLoading={newArrivalsLoading} />
+      </section>
+
+      {/* Trending Now */}
+      <section className="container-veloura py-16">
+        <motion.div {...fadeUp()} className="mb-8 flex items-end justify-between">
+          <h2 className="font-display text-3xl text-ink">Trending Now</h2>
+          <Link to="/shop?sort=featured" className="text-sm font-medium text-burgundy hover:text-burgundy-hover">
+            View All
+          </Link>
+        </motion.div>
+        <ProductRail products={trending} isLoading={trendingLoading} />
       </section>
 
       {/* Women's Edit */}

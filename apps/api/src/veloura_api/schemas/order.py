@@ -19,6 +19,8 @@ class ShippingAddressInput(BaseModel):
 
 class CreateOrderRequest(BaseModel):
     shipping_address: ShippingAddressInput
+    coupon_code: str | None = Field(default=None, max_length=40)
+    customer_notes: str | None = Field(default=None, max_length=1000)
 
 
 class OrderItemOut(BaseModel):
@@ -33,16 +35,27 @@ class OrderItemOut(BaseModel):
     image_url: str | None = None
 
 
+class OrderStatusHistoryOut(BaseModel):
+    status: OrderStatus
+    note: str | None
+    created_at: datetime
+
+
 class OrderOut(BaseModel):
     id: uuid.UUID
     order_number: str
     status: OrderStatus
     subtotal: float
+    discount_amount: float
     shipping_cost: float
     tax: float
     total: float
+    coupon_code: str | None
+    customer_notes: str | None
     shipping_address: dict
     items: list[OrderItemOut]
+    status_history: list[OrderStatusHistoryOut]
+    can_cancel: bool
     created_at: datetime
 
 
@@ -57,3 +70,4 @@ class OrderSummaryOut(BaseModel):
 
 class UpdateOrderStatusRequest(BaseModel):
     status: OrderStatus
+    note: str | None = Field(default=None, max_length=500)

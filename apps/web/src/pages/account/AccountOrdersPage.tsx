@@ -13,6 +13,7 @@ const STATUS_VARIANT: Record<OrderStatus, "success" | "warning" | "burgundy" | "
   shipped: "burgundy",
   delivered: "success",
   cancelled: "error",
+  returned: "neutral",
 };
 
 function formatUSD(value: number): string {
@@ -48,7 +49,7 @@ export function AccountOrdersPage() {
       {orders.map((order) => (
         <Link
           key={order.id}
-          to={`/order-success/${order.id}`}
+          to={`/account/orders/${order.id}`}
           className="flex flex-col gap-2 p-5 transition-colors hover:bg-black/[0.02] sm:flex-row sm:items-center sm:justify-between"
         >
           <div>

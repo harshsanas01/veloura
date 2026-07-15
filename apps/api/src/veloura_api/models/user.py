@@ -17,21 +17,22 @@ class User(Base, UUIDPKMixin, TimestampMixin):
 
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    first_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    last_name: Mapped[str] = mapped_column(String(120), nullable=False, default="")
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole, name="user_role"), default=UserRole.CUSTOMER, nullable=False
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
+    @property
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}".strip()
+
     addresses = relationship("Address", back_populates="user", cascade="all, delete-orphan")
     cart = relationship("Cart", back_populates="user", uselist=False, cascade="all, delete-orphan")
-    wishlist = relationship(
-        "Wishlist", back_populates="user", uselist=False, cascade="all, delete-orphan"
-    )
+    wishlist = relationship("Wishlist", back_populates="user", uselist=False, cascade="all, delete-orphan")
     orders = relationship("Order", back_populates="user", cascade="all, delete-orphan")
     style_profile = relationship(
         "StyleProfile", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
-    chat_sessions = relationship(
-        "ChatSession", back_populates="user", cascade="all, delete-orphan"
-    )
+    chat_sessions = relationship("ChatSession", back_populates="user", cascade="all, delete-orphan")

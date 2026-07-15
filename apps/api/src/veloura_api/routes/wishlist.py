@@ -3,7 +3,11 @@ import uuid
 from fastapi import APIRouter
 
 from veloura_api.dependencies import CurrentUser, DbSession
-from veloura_api.schemas.wishlist import AddWishlistItemRequest, WishlistOut
+from veloura_api.schemas.wishlist import (
+    AddWishlistItemRequest,
+    MoveWishlistItemToCartRequest,
+    WishlistOut,
+)
 from veloura_api.services.wishlist_service import WishlistService
 
 router = APIRouter(prefix="/wishlist", tags=["wishlist"])
@@ -22,3 +26,15 @@ def add_item(payload: AddWishlistItemRequest, current_user: CurrentUser, db: DbS
 @router.delete("/items/{product_id}", response_model=WishlistOut)
 def remove_item(product_id: uuid.UUID, current_user: CurrentUser, db: DbSession) -> WishlistOut:
     return WishlistService(db).remove_item(current_user.id, product_id)
+
+
+@router.post("/items/{product_id}/move-to-cart", response_model=WishlistOut)
+def move_to_cart(
+    product_id: uuid.UUID,
+    payload: MoveWishlistItemToCartRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> WishlistOut:
+    return WishlistService(db).move_to_cart(
+        current_user.id, product_id, payload.variant_id, payload.quantity
+    )

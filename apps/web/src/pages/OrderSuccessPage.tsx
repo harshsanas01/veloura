@@ -1,16 +1,29 @@
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Circle } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
+import { Button } from "@/components/ui/Button";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { useOrder } from "@/hooks/useOrders";
+import { useCancelOrder, useOrder } from "@/hooks/useOrders";
+import type { OrderStatus } from "@/types";
 
 function formatUSD(value: number): string {
   return value.toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: "Pending",
+  paid: "Confirmed",
+  processing: "Processing",
+  shipped: "Shipped",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+  returned: "Returned",
+};
+
 export function OrderSuccessPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const { data: order, isLoading, isError, refetch } = useOrder(orderId);
+  const cancelOrder = useCancelOrder();
 
   if (isLoading) {
     return (
@@ -40,6 +53,42 @@ export function OrderSuccessPage() {
         </p>
 
         <div className="mt-8 rounded-lg border border-border bg-surface p-6 text-left">
+          <h2 className="mb-4 font-display text-lg text-ink">Order Status</h2>
+          <ol className="flex flex-col gap-3">
+            {order.status_history.map((entry, i) => (
+              <li key={i} className="flex items-start gap-3">
+                {i === order.status_history.length - 1 ? (
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-burgundy" />
+                ) : (
+                  <Circle className="mt-0.5 h-4 w-4 shrink-0 text-ink-secondary/40" />
+                )}
+                <div>
+                  <p className="text-sm font-medium text-ink">{STATUS_LABELS[entry.status]}</p>
+                  <p className="text-xs text-ink-secondary">
+                    {new Date(entry.created_at).toLocaleString(undefined, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })}
+                    {entry.note ? ` — ${entry.note}` : ""}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          {order.can_cancel && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="mt-4"
+              isLoading={cancelOrder.isPending}
+              onClick={() => cancelOrder.mutate(order.id)}
+            >
+              Cancel Order
+            </Button>
+          )}
+        </div>
+
+        <div className="mt-6 rounded-lg border border-border bg-surface p-6 text-left">
           <div className="divide-y divide-border">
             {order.items.map((item) => (
               <div key={item.id} className="flex items-center gap-4 py-4">
@@ -61,6 +110,12 @@ export function OrderSuccessPage() {
               <span className="text-ink-secondary">Subtotal</span>
               <span className="text-ink">{formatUSD(order.subtotal)}</span>
             </div>
+            {order.discount_amount > 0 && (
+              <div className="flex justify-between text-burgundy">
+                <span>Discount {order.coupon_code ? `(${order.coupon_code})` : ""}</span>
+                <span>-{formatUSD(order.discount_amount)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-ink-secondary">Shipping</span>
               <span className="text-ink">{order.shipping_cost === 0 ? "Free" : formatUSD(order.shipping_cost)}</span>
@@ -74,6 +129,11 @@ export function OrderSuccessPage() {
               <span className="text-ink">{formatUSD(order.total)}</span>
             </div>
           </div>
+          {order.customer_notes && (
+            <p className="mt-4 border-t border-border pt-4 text-xs text-ink-secondary">
+              <span className="font-medium text-ink">Order notes:</span> {order.customer_notes}
+            </p>
+          )}
         </div>
 
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">

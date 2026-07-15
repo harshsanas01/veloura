@@ -20,9 +20,7 @@ def configure_logging() -> None:
             if settings.environment == "production"
             else structlog.dev.ConsoleRenderer(),
         ],
-        wrapper_class=structlog.make_filtering_bound_logger(
-            logging.getLevelName(settings.log_level.upper())
-        ),
+        wrapper_class=structlog.make_filtering_bound_logger(logging.getLevelName(settings.log_level.upper())),
         logger_factory=structlog.PrintLoggerFactory(),
         cache_logger_on_first_use=True,
     )

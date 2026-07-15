@@ -1,4 +1,4 @@
-.PHONY: install dev dev-api dev-web test lint format migrate migration seed generate-embeddings build
+.PHONY: install dev dev-api dev-web test lint format migrate migration seed reseed-products generate-embeddings build
 
 VENV = apps/api/.venv
 PY = $(VENV)/bin/python
@@ -24,6 +24,7 @@ test:
 
 lint:
 	cd apps/api && .venv/bin/ruff check src tests
+	cd apps/api && .venv/bin/mypy src
 	cd apps/web && npm run lint
 
 format:
@@ -37,6 +38,11 @@ migration:
 
 seed:
 	$(PY) scripts/seed_products.py
+
+reseed-products:
+	@echo "This permanently DELETES inactive, seed-owned products (see scripts/reseed_products.py)."
+	@echo "Run 'python scripts/reseed_products.py --confirm' directly once you're sure."
+	$(PY) scripts/reseed_products.py
 
 generate-embeddings:
 	$(PY) scripts/generate_embeddings.py
