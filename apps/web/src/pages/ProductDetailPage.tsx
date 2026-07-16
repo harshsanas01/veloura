@@ -10,6 +10,7 @@ import { ReviewsSection } from "@/components/product/ReviewsSection";
 import { SizeGuideModal } from "@/components/product/SizeGuideModal";
 import { SizeSelector } from "@/components/product/SizeSelector";
 import { Accordion } from "@/components/ui/Accordion";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import { Badge } from "@/components/ui/Badge";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { Button } from "@/components/ui/Button";
@@ -166,10 +167,9 @@ export function ProductDetailPage() {
             className="group relative block aspect-[3/4] w-full overflow-hidden rounded-lg bg-taupe/10"
             aria-label="View fullscreen image"
           >
-            <img
+            <ImageWithFallback
               src={images[activeImage] ?? product.variants[0]?.image_url}
               alt={product.name}
-              className="h-full w-full object-cover"
             />
             <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-surface/90 text-ink opacity-0 shadow-card transition-opacity group-hover:opacity-100">
               <ZoomIn className="h-4 w-4" />

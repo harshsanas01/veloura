@@ -71,19 +71,22 @@ class ProductRepository:
 
         query = base_query.options(selectinload(Product.variants), joinedload(Product.category))
 
+        # Product.id is the final tiebreaker on every sort: seeded rows share a
+        # created_at (and prices/names repeat), and without a total order the
+        # same product can appear on two pages while another is skipped.
         if filters.sort == SortOption.PRICE_ASC:
-            query = query.order_by(func.coalesce(Product.sale_price, Product.base_price).asc())
+            query = query.order_by(func.coalesce(Product.sale_price, Product.base_price).asc(), Product.id)
         elif filters.sort == SortOption.PRICE_DESC:
-            query = query.order_by(func.coalesce(Product.sale_price, Product.base_price).desc())
+            query = query.order_by(func.coalesce(Product.sale_price, Product.base_price).desc(), Product.id)
         elif filters.sort == SortOption.FEATURED:
-            query = query.order_by(Product.is_featured.desc(), Product.created_at.desc())
+            query = query.order_by(Product.is_featured.desc(), Product.created_at.desc(), Product.id)
         elif filters.sort == SortOption.NAME_ASC:
-            query = query.order_by(Product.name.asc())
+            query = query.order_by(Product.name.asc(), Product.id)
         elif filters.sort == SortOption.BIGGEST_DISCOUNT:
             discount = Product.base_price - func.coalesce(Product.sale_price, Product.base_price)
-            query = query.order_by(discount.desc(), Product.created_at.desc())
+            query = query.order_by(discount.desc(), Product.created_at.desc(), Product.id)
         else:
-            query = query.order_by(Product.created_at.desc())
+            query = query.order_by(Product.created_at.desc(), Product.id)
 
         offset = (filters.page - 1) * filters.page_size
         query = query.offset(offset).limit(filters.page_size)

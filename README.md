@@ -123,7 +123,8 @@ Full command reference:
 | `make migrate` | Apply Alembic migrations |
 | `make migration m="add foo"` | Generate a new Alembic migration |
 | `make seed` | Run `scripts/seed_products.py` (idempotent — see below) |
-| `make reseed-products` | Dry-run report of seed-owned products eligible for permanent deletion (see below) |
+| `make reseed-products` | Safe reseed: refresh seed-owned product images from the manifest, preserving users/orders (see below) |
+| `make validate-seed-images` | Verify the image manifest: unique URLs/source IDs, gender/category match, full coverage |
 | `make generate-embeddings` | Backfill pgvector embeddings (requires `OPENAI_API_KEY`) |
 | `make build` | Production build of the frontend |
 
@@ -168,18 +169,28 @@ make seed      # idempotent: categories, 608 products with variants, demo users/
 make generate-embeddings   # optional: backfill pgvector embeddings for semantic AI-stylist ranking
 ```
 
-`make seed` is always safe to re-run against an existing database: it matches rows by slug/email
-and skips anything already present, and it never deletes real user data. If it detects products
-left over from an older, narrower generation of the seed script, it **deactivates** them (so the
-storefront only shows the current catalog) rather than deleting them — this preserves referential
-integrity for any historical orders that reference them.
+Every seeded product gets a **unique primary image** from the curated manifest at
+[`scripts/data/product_images.json`](scripts/data/product_images.json) — static Unsplash CDN URLs
+(never dynamic keyword endpoints), gender/category-verified, with globally unique URLs and source
+IDs. `make validate-seed-images` checks all of this offline and the seed aborts if any two
+products would ever share an image.
 
-To actually purge those deactivated rows (e.g. to shrink a dev database after a catalog rewrite),
-use the explicit, opt-in cleanup script:
+`make seed` is always safe to re-run against an existing database: it matches rows by slug/email
+and skips anything already present, and it never deletes real user data. Seed-owned products have
+their variant images refreshed in place from the manifest, so a catalog created before the
+unique-image manifest existed heals without any deletion. If it detects products left over from an
+older, narrower generation of the seed script, it **deactivates** them (so the storefront only
+shows the current catalog) rather than deleting them — this preserves referential integrity for
+any historical orders that reference them.
+
+`make reseed-products` is the one-command version of that flow: it validates the manifest, re-runs
+the seed (refreshing images, preserving users/auth/carts/orders), and reports what could be purged.
+To actually purge deactivated rows (e.g. to shrink a dev database after a catalog rewrite), use the
+explicit, opt-in flags:
 
 ```bash
-python scripts/reseed_products.py            # dry run — reports what would be deleted
-python scripts/reseed_products.py --confirm  # actually deletes inactive, seed-owned products
+python scripts/reseed_products.py                    # safe reseed + dry-run purge report
+python scripts/reseed_products.py --purge --confirm  # also deletes inactive, seed-owned products
 ```
 
 This script only ever touches products whose brand is a known Veloura seed brand and that are

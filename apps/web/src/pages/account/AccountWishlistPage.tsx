@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { MoveToCartModal } from "@/components/wishlist/MoveToCartModal";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import { useToggleWishlist, useWishlist } from "@/hooks/useWishlist";
 import type { WishlistItem } from "@/types";
 
@@ -44,7 +45,7 @@ export function AccountWishlistPage() {
           <div key={item.id} className="group relative">
             <Link to={`/products/${item.slug}`}>
               <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-taupe/10">
-                <img src={item.primary_image} alt={item.name} className="h-full w-full object-cover" />
+                <ImageWithFallback src={item.primary_image} alt={item.name} />
                 <div className="absolute left-3 top-3 flex flex-col gap-1.5">
                   {!item.in_stock && (
                     <span className="rounded-full bg-ink/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-surface">

@@ -3,6 +3,7 @@ import { Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { PriceDisplay } from "@/components/product/PriceDisplay";
+import { ImageWithFallback } from "@/components/ui/ImageWithFallback";
 import { useAuthStore } from "@/store/authStore";
 import { useToggleWishlist } from "@/hooks/useWishlist";
 import type { ProductListItem } from "@/types";
@@ -21,11 +22,10 @@ export function ProductCard({ product }: { product: ProductListItem }) {
     >
       <Link to={`/products/${product.slug}`} className="block">
         <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-taupe/10">
-          <img
+          <ImageWithFallback
             src={product.primary_image}
             alt={product.name}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="transition-transform duration-500 group-hover:scale-105"
           />
           {!product.in_stock && (
             <span className="absolute left-3 top-3 rounded-full bg-ink/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-surface">
